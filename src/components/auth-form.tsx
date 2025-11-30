@@ -63,6 +63,25 @@ export function AuthForm({ type }: AuthFormProps) {
     router.push("/dashboard");
   };
 
+  const handleGoogleSignIn = () => {
+    setIsLoading(true);
+    toast({
+        title: "Login Successful",
+        description: "Welcome! Redirecting you to the dashboard.",
+    });
+
+    // Directly handle \"successful\" dummy authentication
+    setTimeout(() => {
+        localStorage.setItem("userName", "user");
+        // Simulate verification for immediate access
+        localStorage.setItem('isPanVerified', 'true');
+        localStorage.setItem('isAadhaarVerified', 'true');
+        
+        router.push("/dashboard");
+        setIsLoading(false);
+    }, 1000);
+  }
+
   const handleForgotPassword = () => {
     toast({
       title: "Forgot password",
@@ -101,7 +120,7 @@ export function AuthForm({ type }: AuthFormProps) {
         description: "Welcome! Redirecting you to the dashboard.",
     });
 
-    // Directly handle "successful" dummy authentication
+    // Directly handle \"successful\" dummy authentication
     setTimeout(() => {
         handleAuthSuccess();
         setIsLoading(false);
@@ -254,6 +273,13 @@ export function AuthForm({ type }: AuthFormProps) {
                     <span className="mx-4 text-sm text-muted-foreground">OR</span>
                     <Separator className="flex-1" />
                   </div>
+                   <Button
+                    variant="outline"
+                    className="w-full mb-2"
+                    onClick={handleGoogleSignIn}
+                  >
+                    Sign in with Google
+                  </Button>
                   <Button
                     variant="secondary"
                     className="w-full"

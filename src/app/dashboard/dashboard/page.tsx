@@ -13,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SosButton } from "@/components/sos-button";
 import { useVerification } from "@/hooks/use-verification";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -55,19 +54,7 @@ const featureCards = [
 ];
 
 export default function DashboardPage() {
-  const [userName, setUserName] = useState('User');
   const { isVerified, isLoading } = useVerification();
-
-  useEffect(() => {
-    try {
-        const storedName = localStorage.getItem('userName');
-        if (storedName) {
-          setUserName(storedName.split(" ")[0]);
-        }
-    } catch (error) {
-        console.error("Could not read from localStorage", error);
-    }
-  }, []);
 
   const FeatureCard = ({ card, disabled }: { card: typeof featureCards[0], disabled: boolean }) => {
     const cardButton = (
@@ -118,7 +105,7 @@ export default function DashboardPage() {
     <div className="p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">
-          Welcome back, {userName}!
+          Welcome back, user!
         </h1>
         <p className="text-muted-foreground">
           Here&apos;s your central hub for safety, growth, and opportunity.
@@ -127,7 +114,7 @@ export default function DashboardPage() {
 
        {isLoading ? (
         <Skeleton className="h-40 w-full" />
-      ) : !isVerified ? (
+      ) : !isVerified && (
         <Card className="border-amber-500 bg-amber-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-amber-800">
@@ -145,18 +132,6 @@ export default function DashboardPage() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="bg-destructive/5 border-destructive/20">
-          <CardHeader>
-            <CardTitle className="text-destructive">Immediate Assistance</CardTitle>
-            <CardDescription>
-              If you are in danger, press the SOS button for immediate help.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SosButton />
           </CardContent>
         </Card>
       )}
