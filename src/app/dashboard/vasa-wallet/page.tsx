@@ -1,571 +1,506 @@
 
-'use client';
+"use client";
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { useToast } from '@/hooks/use-toast';
-import { mockUser, sampleJobs } from '@/lib/data';
-import type { User, Job } from '@/lib/types';
-import { Wallet, Star, Gift, Banknote, Landmark, CreditCard, KeyRound, Calendar as CalendarIcon, Save } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Calendar as CalendarIcon, CheckCircle, Gift, IndianRupee, MapPin, Milestone, Sparkles, XCircle } from "lucide-react";
 
-const rewardTiers = [
-  { name: 'Book a Cleaner (4 hours)', points: 500, icon: '🧼' },
-  { name: 'Book a Cook (One Meal)', points: 700, icon: '🍲' },
-  { name: 'Book a Tailor (Minor Alterations)', points: 800, icon: '🧵' },
-  { name: 'Full Day Event Help', points: 1500, icon: '🎉' },
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/firebase/provider";
+
+
+type User = {
+    id: string;
+    name: string;
+    email: string;
+    points: number;
+    pin: string;
+};
+
+type Job = {
+    id: string;
+    name: string;
+    points: number;
+};
+
+const rewards = [
+    { points: 50, name: "Free Local Service", description: "Redeem for one free local service booking." },
+    { points: 100, name: "Skill-Building Workshop", description: "Access to an exclusive online workshop." },
+    { points: 200, name: "Mentorship Session", description: "A one-on-one session with an industry expert." },
 ];
 
-function VasaWallet() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { toast } = useToast();
+const timeOptions = [
+    "09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"
+];
 
-  const [user, setUser] = useState<User | null>(null);
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [selectedJob, setSelectedJob] = useState('');
-  const [pin, setPin] = useState('');
-  const [newPin, setNewPin] = useState('');
-  const [userPin, setUserPin] = useState('');
-  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
-  
-  const [redeemLocation, setRedeemLocation] = useState('');
-  const [fromDate, setFromDate] = useState<Date>();
-  const [toDate, setToDate] = useState<Date>();
-  const [fromTime, setFromTime] = useState('');
-  const [toTime, setToTime] = useState('');
-  const [selectedReward, setSelectedReward] = useState<{points: number, name: string} | null>(null);
-  const [isRedeemDialogOpen, setIsRedeemDialogOpen] = useState(false);
-  const [showSetPin, setShowSetPin] = useState(false);
-  const [paymentInitiatedFromPostPage, setPaymentInitiatedFromPostPage] = useState(false);
-  
-  useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      const storedJobs = localStorage.getItem('postedJobs');
-      const storedPin = localStorage.getItem('vasaPayPin');
-      setUser(storedUser ? JSON.parse(storedUser) : mockUser);
-      const allJobs = storedJobs ? JSON.parse(storedJobs) : sampleJobs;
-      const combinedJobs = [...allJobs, ...sampleJobs].filter(
-        (job, index, self) => index === self.findIndex((j) => j.id === job.id || j.title === job.title)
-      );
-      setJobs(combinedJobs);
-      
-      if (storedPin) {
-        setUserPin(storedPin);
-      } else {
-        setShowSetPin(true);
-      }
+export default function VasaWalletPage() {
+    const router = useRouter();
+    const { toast } = useToast();
+    const searchParams = useSearchParams();
 
-      const jobIdFromQuery = searchParams.get('jobId');
-      if (jobIdFromQuery) {
-        setSelectedJob(jobIdFromQuery);
-        setIsPaymentDialogOpen(true);
-        setPaymentInitiatedFromPostPage(true);
-      }
-
-    } catch (error) {
-      console.error('Failed to load data from storage', error);
-      setUser(mockUser);
-      setJobs(sampleJobs);
-    }
-  }, [searchParams]);
-
-  const handleMakePayment = () => {
-    const jobToPay = jobs.find(j => j.id === selectedJob);
+    const [user, setUser] = useState<User | null>(null);
+    const [jobs, setJobs] = useState<Job[]>([]);
+    const [selectedJob, setSelectedJob] = useState('');
+    const [pin, setPin] = useState('');
+    const [newPin, setNewPin] = useState('');
+    const [userPin, setUserPin] = useState('');
+    const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
     
-    const payAmount = jobToPay?.pay ? (typeof jobToPay.pay === 'string' ? parseFloat(jobToPay.pay.replace(/[^0-9.-]+/g,"")) : jobToPay.pay) : 0;
-
-
-    if (!jobToPay || !payAmount || !user || user.walletBalance === undefined) {
-      toast({ title: 'Error', description: 'Invalid job selection or payment data.', variant: 'destructive' });
-      return;
-    }
-    if (!userPin) {
-      toast({ title: 'Set PIN', description: 'Please set your Vasa Pay PIN before making a payment.', variant: 'destructive' });
-      return;
-    }
-    if (pin !== userPin) {
-      toast({ title: 'Incorrect PIN', description: 'The Vasa Pay PIN is incorrect.', variant: 'destructive' });
-      return;
-    }
-    if (user.walletBalance < payAmount) {
-      toast({ title: 'Insufficient Balance', description: 'Your wallet balance is too low to make this payment.', variant: 'destructive' });
-      return;
-    }
-
-    const newBalance = user.walletBalance - payAmount;
-    const tokensEarned = Math.floor(payAmount / 100) * 10;
-    const newTokens = (user.vasaPinkTokens || 0) + tokensEarned;
-
-    const updatedUser = { ...user, walletBalance: newBalance, vasaPinkTokens: newTokens };
-    const updatedJobs = jobs.map(j => j.id === selectedJob ? { ...j, status: 'Paid' as const } : j);
+    const [redeemLocation, setRedeemLocation] = useState('');
+    const [fromDate, setFromDate] = useState<Date>();
+    const [toDate, setToDate] = useState<Date>();
+    const [fromTime, setFromTime] = useState('');
+    const [toTime, setToTime] = useState('');
+    const [selectedReward, setSelectedReward] = useState<{points: number, name: string} | null>(null);
+    const [isRedeemDialogOpen, setIsRedeemDialogOpen] = useState(false);
+    const [showSetPin, setShowSetPin] = useState(false);
+    const [paymentInitiatedFromPostPage, setPaymentInitiatedFromPostPage] = useState(false);
     
-    setUser(updatedUser);
-    setJobs(updatedJobs);
-    try {
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        localStorage.setItem('postedJobs', JSON.stringify(updatedJobs));
-    } catch (e) {
-        console.error("could not update localstorage", e)
-    }
+    useEffect(() => {
+        try {
+            const email = localStorage.getItem('userEmail');
+            if (email) {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                const currentUser = users.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
+                if (currentUser) {
+                    setUser(currentUser);
+                    setUserPin(currentUser.pin || '');
+                } else {
+                    // Create a default user if not found
+                    const defaultUser = {
+                        id: 'user-1',
+                        name: localStorage.getItem('userName') || 'Vasa User',
+                        email: email,
+                        points: 125, // Default points
+                        pin: ''
+                    };
+                    users.push(defaultUser);
+                    localStorage.setItem('users', JSON.stringify(users));
+                    setUser(defaultUser);
+                }
+            }
+        } catch (error) {
+            console.error("Failed to load user data:", error);
+            toast({ title: "Error", description: "Could not load your wallet data." });
+        }
 
-    toast({
-      title: 'Payment Successful!',
-      description: `You paid ₹${payAmount.toLocaleString()} for "${jobToPay.title}". You earned ${tokensEarned} VaSa Pink Tokens.`,
-    });
+        const mockJobs = [
+            { id: 'job-1', name: 'House Cleaning', points: 50 },
+            { id: 'job-2', name: 'Elderly Care', points: 75 },
+            { id: 'job-3', name: 'Child Care', points: 60 },
+        ];
+        setJobs(mockJobs);
+        
+        if (searchParams.get('payment_success') === 'true') {
+            const paymentAmount = searchParams.get('amount');
+            const points = searchParams.get('points');
+            toast({
+                title: "Payment Successful!",
+                description: `You have successfully paid ₹${paymentAmount} and earned ${points} points.`,
+                className: "bg-green-100 text-green-800",
+            });
+            
+            // Update points
+            if (user && points) {
+                const updatedUser = { ...user, points: user.points + parseInt(points, 10) };
+                updateUserInLocalStorage(updatedUser);
+            }
+        }
+        if (searchParams.get('openPayment') === 'true' && searchParams.get('jobId')) {
+            setSelectedJob(searchParams.get('jobId')!);
+            setPaymentInitiatedFromPostPage(true);
+            setIsPaymentDialogOpen(true);
+        }
 
-    setIsPaymentDialogOpen(false);
-    setSelectedJob('');
-    setPin('');
-
-    if (paymentInitiatedFromPostPage) {
-        router.push('/dashboard/jobs/post');
-    }
-  };
-  
-  const handleOpenRedeemDialog = (points: number, name: string) => {
-    setSelectedReward({ points, name });
-    setIsRedeemDialogOpen(true);
-  };
-
-  const handleConfirmRedemption = () => {
-    if(!selectedReward) return;
-
-    if (!redeemLocation || !fromDate || !fromTime) {
-      toast({
-        title: 'Missing Information',
-        description: 'Please provide location, date, and time for the service.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-     if ((user?.vasaPinkTokens || 0) < selectedReward.points) {
-      toast({
-        title: 'Not Enough Tokens',
-        description: `You do not have enough tokens to redeem this.`,
-        variant: 'destructive',
-      });
-      return;
-    }
+    }, []);
     
-    const newTokens = (user?.vasaPinkTokens || 0) - selectedReward.points;
-    const updatedUser = { ...user!, vasaPinkTokens: newTokens };
-    setUser(updatedUser);
-    try {
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-    } catch(e) {
-        console.error(e)
-    }
+    const updateUserInLocalStorage = (updatedUser: User) => {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const userIndex = users.findIndex((u: any) => u.email.toLowerCase() === updatedUser.email.toLowerCase());
+        if (userIndex !== -1) {
+            users[userIndex] = updatedUser;
+            localStorage.setItem('users', JSON.stringify(users));
+            setUser(updatedUser);
+        }
+    };
 
+    const handleSetPin = () => {
+        if (newPin.length === 4 && user) {
+            const updatedUser = { ...user, pin: newPin };
+            updateUserInLocalStorage(updatedUser);
+            setUserPin(newPin);
+            setShowSetPin(false);
+            setNewPin('');
+            toast({ title: "Success", description: "Your PIN has been set." });
+        } else {
+            toast({ title: "Error", description: "PIN must be 4 digits." });
+        }
+    };
 
-    toast({
-      title: 'Reward Redeemed!',
-      description: `You have successfully booked "${selectedReward.name}". The service provider will be confirmed shortly.`,
-    });
+    const handlePayment = () => {
+        const job = jobs.find(j => j.id === selectedJob);
+        if (job && pin === userPin) {
+            const updatedUser = { ...user!, points: user!.points - job.points };
+            updateUserInLocalStorage(updatedUser);
 
-    setIsRedeemDialogOpen(false);
-    setSelectedReward(null);
-    setRedeemLocation('');
-    setFromDate(undefined);
-    setToDate(undefined);
-    setFromTime('');
-    setToTime('');
-  };
-
-  const handleSetPin = () => {
-    if (!newPin || newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
-      toast({
-        title: 'Invalid PIN',
-        description: 'Your PIN must be exactly 4 digits.',
-        variant: 'destructive'
-      });
-      return;
-    }
-    try {
-      localStorage.setItem('vasaPayPin', newPin);
-      setUserPin(newPin);
-      setNewPin('');
-      setShowSetPin(false);
-      toast({
-        title: 'PIN Updated',
-        description: 'Your Vasa Pay PIN has been set successfully.'
-      });
-    } catch (e) {
-      console.error('Failed to save PIN to storage', e);
-      toast({
-        title: 'Error',
-        description: 'Could not save your new PIN. Please try again.',
-        variant: 'destructive'
-      });
-    }
-  };
-
-
-  const nextReward = rewardTiers.find(tier => tier.points > (user?.vasaPinkTokens || 0));
-  const progressPercentage = nextReward
-    ? ((user?.vasaPinkTokens || 0) / nextReward.points) * 100
-    : 100;
+            setIsPaymentDialogOpen(false);
+            setPin('');
+            toast({
+                title: "Payment Successful",
+                description: `You have paid ${job.points} points for ${job.name}.`,
+            });
+            if(paymentInitiatedFromPostPage){
+                router.push("/dashboard/rebook?success=true");
+            }
+        } else {
+            toast({ title: "Payment Failed", description: "Invalid PIN or job selection." });
+        }
+    };
     
-  const payableJobs = jobs.filter(job => job.status === 'Worker Assigned' && job.pay);
+    const handleRedeem = (reward: { points: number, name: string }) => {
+        if (user && user.points >= reward.points) {
+            setSelectedReward(reward);
+            setIsRedeemDialogOpen(true);
+        } else {
+            toast({ title: "Not enough points", description: "You don't have enough points to redeem this reward." });
+        }
+    };
 
-  const timeOptions = Array.from({ length: 24 * 2 }, (_, i) => {
-    const hours = Math.floor(i / 2);
-    const minutes = i % 2 === 0 ? '00' : '30';
-    const formattedHours = hours.toString().padStart(2, '0');
-    return `${formattedHours}:${minutes}`;
-  });
+    const handleConfirmRedemption = () => {
+        if(selectedReward && fromDate && fromTime && redeemLocation){
+            const updatedUser = { ...user!, points: user!.points - selectedReward.points };
+            updateUserInLocalStorage(updatedUser);
 
-  const getToTimeOptions = () => {
-    if (!fromTime) return timeOptions;
-    const fromIndex = timeOptions.indexOf(fromTime);
-    return timeOptions.slice(fromIndex + 1);
-  };
-  const toTimeOptions = getToTimeOptions();
+            setIsRedeemDialogOpen(false);
+            toast({
+                title: "Reward Redeemed!",
+                description: `You have successfully redeemed "${selectedReward.name}". We will contact you shortly with details.`,
+            });
+            // Reset redemption form
+            setSelectedReward(null);
+            setFromDate(undefined);
+            setToDate(undefined);
+            setFromTime('');
+            setToTime('');
+            setRedeemLocation('');
+        } else {
+            toast({ title: "Missing Information", description: "Please fill in all required fields to redeem your reward." });
+        }
+    };
 
-  if (!user) {
-    return <div>Loading wallet...</div>;
-  }
+    const toTimeOptions = fromTime ? timeOptions.filter(t => {
+        const [fromHour, fromMinute] = fromTime.split(/:| /);
+        const [toHour, toMinute] = t.split(/:| /);
+        if (parseInt(fromHour) === parseInt(toHour)) {
+            return parseInt(toMinute) > parseInt(fromMinute);
+        }
+        return parseInt(toHour) > parseInt(fromHour);
+    }) : [];
 
-  return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-8">
-      <div className="flex items-center gap-4">
-        <Wallet className="h-8 w-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Vasa Wallet</h1>
-          <p className="text-muted-foreground">Your hub for payments, tokens, and rewards.</p>
-        </div>
-      </div>
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
-      <div className="grid gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-8">
-          <div className="grid gap-6 sm:grid-cols-2">
+    if (!user) {
+        return <div className="p-8">Loading wallet...</div>;
+    }
+
+    return (
+        <div className="p-4 sm:p-6 lg:p-8 space-y-8">
+            <div className="flex justify-between items-center">
+                <div className="space-y-2">
+                    <h1 className="text-3xl font-bold tracking-tight">Vasa Wallet</h1>
+                    <p className="text-muted-foreground">Your points, rewards, and transaction history.</p>
+                </div>
+                <div className="text-right">
+                    <p className="text-lg font-semibold">Welcome, {user.name}</p>
+                    <div className="flex items-center justify-end gap-2 text-2xl font-bold text-primary">
+                        <Sparkles className="h-6 w-6" />
+                        <span>{user.points} Points</span>
+                    </div>
+                </div>
+            </div>
+
+            {!userPin ? (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Set Your Secure PIN</CardTitle>
+                        <CardDescription>Create a 4-digit PIN to authorize payments from your wallet.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Input 
+                            type="password"
+                            maxLength={4}
+                            placeholder="Enter 4-digit PIN"
+                            value={newPin}
+                            onChange={(e) => setNewPin(e.target.value)}
+                        />
+                        <Button onClick={handleSetPin}>Set PIN</Button>
+                    </CardContent>
+                </Card>
+            ) : (
+                <div className="text-right">
+                     <Button variant="outline" onClick={() => setShowSetPin(!showSetPin)}>
+                        {showSetPin ? 'Cancel' : 'Change PIN'}
+                    </Button>
+                </div>
+            )}
+            
+            {showSetPin && (
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Change Your Secure PIN</CardTitle>
+                        <CardDescription>Create a 4-digit PIN to authorize payments from your wallet.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Input 
+                            type="password"
+                            maxLength={4}
+                            placeholder="Enter 4-digit PIN"
+                            value={newPin}
+                            onChange={(e) => setNewPin(e.target.value)}
+                        />
+                        <Button onClick={handleSetPin}>Set PIN</Button>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Redeem Points Section */}
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg">Current Balance</CardTitle>
+                    <CardTitle>Redeem Your Points</CardTitle>
+                    <CardDescription>Use your points to claim exciting rewards.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <p className="text-4xl font-bold">₹{user.walletBalance?.toLocaleString() || '0'}</p>
+                <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {rewards.map(reward => (
+                        <Card key={reward.name} className="flex flex-col">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Gift className="h-6 w-6 text-accent" />
+                                    {reward.name}
+                                </CardTitle>
+                                <CardDescription>{reward.description}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="mt-auto">
+                                <Button 
+                                    className="w-full"
+                                    onClick={() => handleRedeem(reward)}
+                                    disabled={user.points < reward.points}
+                                >
+                                    Redeem for {reward.points} Points
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    ))}
                 </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-primary/80 via-primary to-purple-500 text-primary-foreground">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Star />
-                  VaSa Pink Tokens
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-4xl font-bold">{user.vasaPinkTokens || 0}</p>
-                <p className="text-xs opacity-80 mb-2">Tokens earned</p>
-                <Progress value={progressPercentage} className="h-2 bg-primary-foreground/20 [&>div]:bg-primary-foreground" />
-                <div className="text-xs mt-1 opacity-90">
-                  {nextReward ? (
-                    <span>
-                      {nextReward.points - (user.vasaPinkTokens || 0)} to next reward: {nextReward.name}
-                    </span>
-                  ) : (
-                    <span>Congratulations! You've unlocked all current rewards.</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Make a Payment</CardTitle>
-              <CardDescription>Pay for a completed job and earn tokens.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor="job-select">Select a Job to Pay</Label>
-                     <Select value={selectedJob} onValueChange={setSelectedJob}>
-                        <SelectTrigger id="job-select">
-                            <SelectValue placeholder="Choose a job..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {payableJobs.length > 0 ? (
-                                payableJobs.map(job => (
-                                    <SelectItem key={job.id} value={job.id}>
-                                        {job.title} - ₹{typeof job.pay === 'number' ? job.pay.toLocaleString() : job.pay}
-                                    </SelectItem>
-                                ))
-                            ) : (
-                                <SelectItem value="no-jobs" disabled>No pending payments</SelectItem>
-                            )}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <Button
-                    className="w-full bg-gradient-to-r from-[#E0BBE4] to-[#957DAD] hover:opacity-90 text-primary-foreground"
-                    disabled={!selectedJob}
-                    onClick={() => setIsPaymentDialogOpen(true)}
-                >
-                    Make Payment
-                </Button>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="space-y-8">
-          <Card>
-            <CardHeader>
-                <CardTitle>Security</CardTitle>
-                <CardDescription>Manage your payment security settings.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {showSetPin ? (
-                    <div className="space-y-2">
-                        <Label htmlFor="set-pin">Set Your 4-Digit Vasa Pay PIN</Label>
-                        <div className="flex gap-2">
-                            <Input
-                                id="set-pin"
-                                type="password"
-                                maxLength={4}
-                                placeholder="****"
-                                value={newPin}
-                                onChange={(e) => setNewPin(e.target.value)}
-                            />
-                            <Button onClick={handleSetPin}>
-                                <Save className="mr-2 h-4 w-4" />
-                                Save PIN
-                            </Button>
+
+            {/* Payment Dialog for Rebook */}
+            <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirm Payment</DialogTitle>
+                        <DialogDescription>
+                            Enter your PIN to complete the payment for the selected service.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="job">Service</Label>
+                            <Select value={selectedJob} onValueChange={setSelectedJob} disabled={paymentInitiatedFromPostPage}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a service" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {jobs.map(job => (
+                                        <SelectItem key={job.id} value={job.id}>
+                                            {job.name} ({job.points} points)
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
-                    </div>
-                ) : (
-                    <div className="space-y-3">
-                         <p className="text-sm text-muted-foreground">Your Vasa Pay PIN is set.</p>
-                         <Button variant="outline" className="w-full" onClick={() => setShowSetPin(true)}>
-                            Change PIN
-                        </Button>
-                    </div>
-                )}
-            </CardContent>
-          </Card>
-          <Card>
-             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Gift />
-                Redeem Your VaSa Pink Tokens
-              </CardTitle>
-              <CardDescription>
-                Use your tokens to book a free service.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {rewardTiers.map(tier => (
-                <div key={tier.name} className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="font-semibold">{tier.icon} {tier.name}</p>
-                    <p className="text-sm text-muted-foreground">{tier.points} Tokens</p>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    onClick={() => handleOpenRedeemDialog(tier.points, tier.name)}
-                    disabled={(user.vasaPinkTokens || 0) < tier.points}
-                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
-                  >
-                    Redeem
-                  </Button>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-           <Card>
-            <CardHeader>
-                <CardTitle>Add Funds</CardTitle>
-                <CardDescription>Top up your wallet balance.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor="amount">Amount to Add</Label>
-                    <Input id="amount" type="number" placeholder="e.g., 500" />
-                </div>
-                <div className="space-y-3">
-                    <Button className="w-full justify-start gap-3" variant="outline"><CreditCard /> Credit/Debit Card</Button>
-                    <Button className="w-full justify-start gap-3" variant="outline"><Landmark /> Bank Transfer</Button>
-                    <Button className="w-full justify-start gap-3" variant="outline"><Banknote /> UPI / QR Code</Button>
-                </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-      
-        <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Confirm Payment</DialogTitle>
-                    <DialogDescription>
-                        Enter your 4-digit Vasa Pay PIN to authorize this transaction.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="text-center">
-                        <p className="text-sm text-muted-foreground">You are paying</p>
-                        <p className="text-3xl font-bold">₹{jobs.find(j => j.id === selectedJob)?.pay?.toLocaleString()}</p>
-                        <p className="text-sm text-muted-foreground">for "{jobs.find(j => j.id === selectedJob)?.title}"</p>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="pin-input">Vasa Pay PIN</Label>
-                        <div className="relative">
-                            <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <div className="space-y-2">
+                            <Label htmlFor="pin">PIN</Label>
                             <Input
-                                id="pin-input"
+                                id="pin"
                                 type="password"
                                 maxLength={4}
-                                className="pl-10 text-center tracking-[0.5em]"
                                 value={pin}
                                 onChange={(e) => setPin(e.target.value)}
                             />
                         </div>
                     </div>
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleMakePayment}>Confirm &amp; Pay</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-
-        <Dialog open={isRedeemDialogOpen} onOpenChange={setIsRedeemDialogOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Book Your Reward</DialogTitle>
-                    <DialogDescription>
-                        Please provide the details for your redeemed service: "{selectedReward?.name}".
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-6 py-4">
-                     <div className="space-y-2">
-                        <Label htmlFor="redeem-location">Service Location</Label>
-                        <Input id="redeem-location" placeholder="Enter address for the service" value={redeemLocation} onChange={(e) => setRedeemLocation(e.target.value)} />
-                    </div>
-                     <div className="grid sm:grid-cols-2 gap-6">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="from-date">From Date</Label>
-                                <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                    variant={'outline'}
-                                    className={cn(
-                                        'w-full justify-start text-left font-normal',
-                                        !fromDate && 'text-muted-foreground'
-                                    )}
-                                    >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {fromDate ? format(fromDate, 'PPP') : <span>Pick a date</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                    mode="single"
-                                    selected={fromDate}
-                                    onSelect={setFromDate}
-                                    initialFocus
-                                    />
-                                </PopoverContent>
-                                </Popover>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handlePayment}>Confirm Payment</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            
+            {/* Redeem Dialog */}
+            <Dialog open={isRedeemDialogOpen} onOpenChange={setIsRedeemDialogOpen}>
+                <DialogContent className="sm:max-w-[625px]">
+                    <DialogHeader>
+                        <DialogTitle>Redeem: {selectedReward?.name}</DialogTitle>
+                        <DialogDescription>
+                            Please provide the details for your service booking.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-6 py-4">
+                        <div className="space-y-2">
+                             <Label htmlFor="redeem-location">Service Location</Label>
+                             <div className="relative">
+                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                 <Input
+                                     id="redeem-location"
+                                     placeholder="Enter a location, e.g., 'Koramangala, Bengaluru'"
+                                     className="pl-10"
+                                     value={redeemLocation}
+                                     onChange={(e) => setRedeemLocation(e.target.value)}
+                                 />
+                             </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="from-date">From Date</Label>
+                                    <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full justify-start text-left font-normal",
+                                            !fromDate && "text-muted-foreground"
+                                        )}
+                                        >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {fromDate ? format(fromDate, "PPP") : <span>Pick a date</span>}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                        mode="single"
+                                        selected={fromDate}
+                                        onSelect={setFromDate}
+                                        disabled={{ before: tomorrow }}
+                                        initialFocus
+                                        />
+                                    </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="from-time">From Time</Label>
+                                    <Select value={fromTime} onValueChange={setFromTime}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select time" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {timeOptions.map(time => <SelectItem key={time} value={time}>{time}</SelectItem>)}
+                                    </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="from-time">From Time</Label>
-                                <Select value={fromTime} onValueChange={setFromTime}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select time" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {timeOptions.map(time => <SelectItem key={time} value={time}>{time}</SelectItem>)}
-                                </SelectContent>
-                                </Select>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="to-date">To Date (Optional)</Label>
+                                    <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full justify-start text-left font-normal",
+                                            !toDate && "text-muted-foreground"
+                                        )}
+                                        disabled={!fromDate}
+                                        >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {toDate ? format(toDate, "PPP") : <span>Pick a date</span>}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                        mode="single"
+                                        selected={toDate}
+                                        onSelect={setToDate}
+                                        disabled={fromDate ? { before: fromDate } : undefined}
+                                        initialFocus
+                                        />
+                                    </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="to-time">To Time (Optional)</Label>
+                                    <Select value={toTime} onValueChange={setToTime} disabled={!fromTime}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select time" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {toTimeOptions.map(time => <SelectItem key={time} value={time}>{time}</SelectItem>)}
+                                    </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="to-date">To Date (Optional)</Label>
-                                <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                    variant={'outline'}
-                                    className={cn(
-                                        'w-full justify-start text-left font-normal',
-                                        !toDate && 'text-muted-foreground'
-                                    )}
-                                    >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {toDate ? format(toDate, 'PPP') : <span>Pick a date</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                    mode="single"
-                                    selected={toDate}
-                                    onSelect={setToDate}
-                                    disabled={fromDate ? { before: fromDate } : undefined}
-                                    initialFocus
-                                    />
-                                </PopoverContent>
-                                </Popover>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="to-time">To Time (Optional)</Label>
-                                <Select value={toTime} onValueChange={setToTime} disabled={!fromTime}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select time" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {toTimeOptions.map(time => <SelectItem key={time} value={time}>{time}</SelectItem>)}
-                                </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
                     </div>
-                </div>
-                 <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsRedeemDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleConfirmRedemption}>Confirm Redemption</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                     <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsRedeemDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleConfirmRedemption}>Confirm Redemption</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
-    </div>
-  );
-}
-
-export default function VasaWalletPage() {
-  return (
-    <Suspense fallback={<div>Loading wallet...</div>}>
-      <VasaWallet />
-    </Suspense>
-  );
+             {/* Transaction History Section */}
+             <Card>
+                <CardHeader>
+                    <CardTitle>Transaction History</CardTitle>
+                    <CardDescription>A log of your recent points activity.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ul className="space-y-4">
+                        <li className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <CheckCircle className="h-6 w-6 text-green-500" />
+                                <div>
+                                    <p className="font-semibold">Points Earned: Job Referral</p>
+                                    <p className="text-sm text-muted-foreground">November 28, 2023</p>
+                                </div>
+                            </div>
+                            <p className="font-semibold text-green-600">+50 Points</p>
+                        </li>
+                        <li className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <XCircle className="h-6 w-6 text-red-500" />
+                                <div>
+                                    <p className="font-semibold">Paid for: House Cleaning</p>
+                                    <p className="text-sm text-muted-foreground">November 25, 2023</p>
+                                </div>
+                            </div>
+                            <p className="font-semibold text-red-600">-50 Points</p>
+                        </li>
+                         <li className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <CheckCircle className="h-6 w-6 text-green-500" />
+                                <div>
+                                    <p className="font-semibold">Points Earned: Profile Completion</p>
+                                    <p className="text-sm text-muted-foreground">November 20, 2023</p>
+                                </div>
+                            </div>
+                            <p className="font-semibold text-green-600">+100 Points</p>
+                        </li>
+                    </ul>
+                </CardContent>
+            </Card>
+        </div>
+    );
 }
