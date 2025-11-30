@@ -12,7 +12,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SosButton } from "@/components/sos-button";
 import { useVerification } from "@/hooks/use-verification";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -122,7 +121,7 @@ export default function DashboardPage() {
 
        {isLoading ? (
         <Skeleton className="h-40 w-full" />
-      ) : !isVerified ? (
+      ) : !isVerified && (
         <Card className="border-amber-500 bg-amber-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-amber-800">
@@ -140,18 +139,6 @@ export default function DashboardPage() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="bg-destructive/5 border-destructive/20">
-          <CardHeader>
-            <CardTitle className="text-destructive">Immediate Assistance</CardTitle>
-            <CardDescription>
-              If you are in danger, press the SOS button for immediate help.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SosButton />
           </CardContent>
         </Card>
       )}
