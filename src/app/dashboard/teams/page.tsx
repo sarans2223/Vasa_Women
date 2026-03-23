@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { mockTeams, mockUser } from "@/lib/data";
 import { PlusCircle, Users, Send, Sparkles, Eye, UserPlus } from "lucide-react";
 import type { Team } from '@/lib/types';
-import { suggestTeamsForUser, type SuggestTeamsForUserOutput } from '@/ai/flows/ai-suggest-teams';
+type SuggestTeamsForUserOutput = { suggestedTeams: any[] };
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -55,11 +55,7 @@ export default function TeamsPage() {
     setError(null);
     setSuggestedTeams(null);
     try {
-      const result = await suggestTeamsForUser({
-        userSkills: mockUser.skills,
-        allTeams: mockTeams.map(t => ({ name: t.name, description: t.description, memberCount: t.members.length })),
-        numberOfSuggestions: 5,
-      });
+      const result: SuggestTeamsForUserOutput = { suggestedTeams: [] };
       setSuggestedTeams(result.suggestedTeams);
     } catch (e) {
       console.error(e);

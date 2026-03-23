@@ -30,11 +30,11 @@ export default function MonetizationPage() {
   const workerData = workerMonetizationData[workerTimeFrame];
   const recruiterData = recruiterMonetizationData[recruiterTimeFrame];
 
-  const totalWorkerBenefit = workerData.reduce((acc, item) => acc + item.amount, 0);
-  const totalJobsCompleted = workerData.reduce((acc, item) => acc + item.jobs, 0);
+  const totalWorkerBenefit = workerData.reduce((acc: number, item: any) => acc + item.amount, 0);
+  const totalJobsCompleted = workerData.reduce((acc: number, item: any) => acc + item.jobs, 0);
 
-  const totalRecruiterPaid = recruiterData.reduce((acc, item) => acc + item.amount, 0);
-  const totalWorkersRecruited = recruiterData.reduce((acc, item) => acc + item.workers, 0);
+  const totalRecruiterPaid = recruiterData.reduce((acc: number, item: any) => acc + item.amount, 0);
+  const totalWorkersRecruited = recruiterData.reduce((acc: number, item: any) => acc + item.workers, 0);
   
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8">

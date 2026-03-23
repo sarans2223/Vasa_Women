@@ -2,7 +2,7 @@
 'use client';
 // src/app/signup/page.tsx
 import { AuthForm } from "@/components/auth-form";
-import { useUser } from "@/firebase/auth/use-user";
+import { useUser } from "@/lib/auth-provider";
 import { useRouter } from "next/navigation";
 import React from "react";
 

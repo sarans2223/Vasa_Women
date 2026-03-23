@@ -30,7 +30,7 @@ const dashboardItems = [
     description: 'View and manage all registered profiles.',
     href: '/dashboard/panchayat/profiles',
     icon: Users,
-    count: 120,
+    count: 0,
     countLabel: 'Total Profiles',
   },
   {
@@ -46,7 +46,7 @@ const dashboardItems = [
     description: 'Track the status of all posted jobs.',
     href: '/dashboard/panchayat/job-status',
     icon: BarChart,
-    count: 45,
+    count: 0,
     countLabel: 'Jobs Assigned',
   },
 ];
@@ -79,7 +79,7 @@ export default function PanchayatDashboard() {
                 <UsersRound className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">132</div>
+                <div className="text-2xl font-bold">0</div>
                 <p className="text-xs text-muted-foreground">in active jobs</p>
             </CardContent>
         </Card>
@@ -89,8 +89,8 @@ export default function PanchayatDashboard() {
                 <BriefcaseBusiness className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">45</div>
-                <p className="text-xs text-muted-foreground">+12% from last month</p>
+                <div className="text-2xl font-bold">0</div>
+                <p className="text-xs text-muted-foreground">- from last month</p>
             </CardContent>
         </Card>
         <Card>
@@ -99,8 +99,8 @@ export default function PanchayatDashboard() {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">78%</div>
-                <Progress value={78} className="h-2 mt-2" />
+                <div className="text-2xl font-bold">0%</div>
+                <Progress value={0} className="h-2 mt-2" />
             </CardContent>
         </Card>
       </div>

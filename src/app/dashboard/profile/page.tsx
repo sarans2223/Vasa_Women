@@ -316,7 +316,7 @@ export default function ProfilePage() {
                                         <div>
                                             <h4 className="font-semibold">{job.title}</h4>
                                             <div className="flex flex-wrap gap-2 mt-2">
-                                                {job.workersHired.map(worker => <Badge key={worker} variant="secondary">{worker}</Badge>)}
+                                                {job.workersHired.map((worker: any) => <Badge key={worker} variant="secondary">{worker}</Badge>)}
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4 text-right">

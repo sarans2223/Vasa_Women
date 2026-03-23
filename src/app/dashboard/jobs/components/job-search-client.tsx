@@ -4,7 +4,7 @@ import { Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { mockJobs, mockUser } from "@/lib/data";
-import { matchJobsToUsers, type MatchJobsToUsersOutput } from "@/ai/flows/ai-match-jobs-to-users";
+type MatchJobsToUsersOutput = any[];
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { JobCard } from "../../components/job-card";
@@ -51,10 +51,8 @@ export function JobSearchClient() {
         }));
         
         try {
-            const result = await matchJobsToUsers({ userProfile: userProfileForAI, jobPostings: jobPostingsForAI });
-            // Sort by relevance score descending
-            result.sort((a, b) => b.relevanceScore - a.relevanceScore);
-            setMatchedJobs(result);
+        const result: MatchJobsToUsersOutput = [];
+        setMatchedJobs(result);
         } catch (e) {
             console.error(e);
             setError("An error occurred while matching jobs. Please try again.");

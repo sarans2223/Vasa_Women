@@ -22,18 +22,31 @@ import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
 
-const initialWorkerNotifications = [
-    { id: 1, type: 'offer' as const, job: 'Community Kitchen Chef', recruiter: 'Community Help Group', status: 'pending' as const, question: '', answer: '', location: 'Chennai', pay: '₹15,000/month', schedule: 'Mon-Fri, 9am-5pm' },
-    { id: 2, type: 'offer' as const, job: 'Urgent Tailoring Work', recruiter: 'Local Boutique', status: 'confirmed' as const, question: 'What is the exact fabric type?', answer: 'It is a 60% cotton, 40% polyester blend.', location: 'Coimbatore', pay: '₹500/piece', schedule: 'Flexible' },
-    { id: 3, type: 'offer' as const, job: 'Farm Hand for Harvest', recruiter: 'Green Fields Farm', status: 'pending' as const, question: '', answer: '', location: 'Salem', pay: '₹450/day', schedule: 'Seasonal' },
+export type WorkerNotification = {
+  id: number;
+  type: 'offer';
+  job: string;
+  recruiter: string;
+  status: 'pending' | 'confirmed' | 'question_asked';
+  question: string;
+  answer: string;
+  location: string;
+  pay: string;
+  schedule: string;
+};
 
-];
+export type RecruiterNotification = {
+  id: number;
+  type: 'confirmation' | 'question';
+  job: string;
+  worker: string;
+  status: 'pending' | 'confirmed' | 'answered';
+  question: string;
+  answer: string;
+};
 
-const initialRecruiterNotifications = [
-    { id: 1, type: 'confirmation' as const, job: 'Event Catering Assistant', worker: 'Lakshmi Priya', status: 'confirmed' as const, question: '', answer: '' },
-    { id: 2, type: 'confirmation' as const, job: 'Office Cleaning Staff', worker: 'Anjali Sharma', status: 'pending' as const, question: '', answer: '' },
-    { id: 3, type: 'question' as const, job: 'Urgent Tailoring Work', worker: 'Kavita Devi', status: 'answered' as const, question: 'What is the exact fabric type?', answer: 'It is a 60% cotton, 40% polyester blend.' },
-];
+const initialWorkerNotifications: WorkerNotification[] = [];
+const initialRecruiterNotifications: RecruiterNotification[] = [];
 
 
 export default function NotificationsPage() {
@@ -101,7 +114,11 @@ export default function NotificationsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {workerNotifs.map((notif, index) => (
+              {workerNotifs.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No notifications yet.</p>
+                </div>
+              ) : workerNotifs.map((notif) => (
                 <div key={notif.id} className="border-t pt-6 first:border-t-0 first:pt-0">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div>
@@ -152,7 +169,7 @@ export default function NotificationsPage() {
                                 <Input id={`worker-question-${notif.id}`} placeholder="Type your question..." />
                                 <Button size="icon" onClick={() => {
                                     const input = document.getElementById(`worker-question-${notif.id}`) as HTMLInputElement;
-                                    handleWorkerQuestion(notif.id, input.value);
+                                    if (input) handleWorkerQuestion(notif.id, input.value);
                                 }}>
                                     <Send className="h-4 w-4"/>
                                 </Button>
@@ -175,7 +192,11 @@ export default function NotificationsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                {recruiterNotifs.map((notif) => (
+                {recruiterNotifs.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>No notifications yet.</p>
+                  </div>
+                ) : recruiterNotifs.map((notif) => (
                     <div key={notif.id} className="border-t pt-6 first:border-t-0 first:pt-0">
                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                             <div>
@@ -202,7 +223,7 @@ export default function NotificationsPage() {
                                             <Input id={`recruiter-answer-${notif.id}`} placeholder="Type your answer..."/>
                                             <Button size="icon" onClick={() => {
                                                 const input = document.getElementById(`recruiter-answer-${notif.id}`) as HTMLInputElement;
-                                                handleRecruiterAnswer(notif.id, input.value);
+                                                if (input) handleRecruiterAnswer(notif.id, input.value);
                                             }}>
                                                 <Send className="h-4 w-4"/>
                                             </Button>

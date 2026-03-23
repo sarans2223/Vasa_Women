@@ -32,16 +32,17 @@ import { Search, Users, Eye, Edit, Trash2, Star, Briefcase, DollarSign } from "l
 import { useToast } from '@/hooks/use-toast';
 
 // Mock data for demonstration, used as a fallback
-const mockProfiles = [
-  { id: '1', name: 'Lakshmi Priya', jobsCompleted: 2, benefitedAmount: 5000, mobileNo: '9876543210', aadhaarId: '123456789012', skills: ['Cooking', 'Tailoring'] },
-  { id: '2', name: 'Kavita Devi', jobsCompleted: 2, benefitedAmount: 4500, mobileNo: '9876543211', aadhaarId: '123456789013', skills: ['Farming'] },
-  { id: '3', name: 'Meena Kumari', jobsCompleted: 3, benefitedAmount: 6000, mobileNo: '9876543212', aadhaarId: '123456789014', skills: ['Herding', 'Farming'] },
-  { id: '4', name: 'Anjali Sharma', jobsCompleted: 1, benefitedAmount: 1500, mobileNo: '9876543213', aadhaarId: '123456789015', skills: ['Cleaning'] },
-  { id: '5', name: 'Sita Rai', jobsCompleted: 0, benefitedAmount: 0, mobileNo: '9876543214', aadhaarId: '123456789016', skills: ['Child Care', 'Cooking'] },
-  { id: '6', name: 'Rina Das', jobsCompleted: 5, benefitedAmount: 12500, mobileNo: '9876543215', aadhaarId: '123456789017', skills: ['Handicrafts', 'Painting'] },
-  { id: '7', name: 'Sunita Devi', jobsCompleted: 0, benefitedAmount: 0, mobileNo: '9876543216', aadhaarId: '123456789018', skills: ['Tailoring', 'Embroidery'] },
-  { id: '8', name: 'Pooja Singh', jobsCompleted: 0, benefitedAmount: 0, mobileNo: '9876543217', aadhaarId: '123456789019', skills: ['Driving'] },
-];
+export type Profile = {
+  id: string;
+  name: string;
+  jobsCompleted: number;
+  benefitedAmount: number;
+  mobileNo: string;
+  aadhaarId: string;
+  skills: string[];
+};
+
+const mockProfiles: Profile[] = [];
 
 const statusColors = {
   'Assigned': 'bg-blue-100 text-blue-800 border-blue-200',
@@ -62,7 +63,7 @@ const getOverviewStatus = (jobsCompleted: number) => {
   return 'Begin';
 };
 
-type Profile = typeof mockProfiles[0];
+
 
 export default function ProfilesListPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
