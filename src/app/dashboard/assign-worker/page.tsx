@@ -43,22 +43,17 @@ import { format } from 'date-fns';
 import { VerificationGate } from '@/components/verification-gate';
 
 
-const allProfiles = [
-  { id: '1', name: 'Lakshmi Priya', skills: ['Cooking', 'Tailoring'], rating: 4.5, jobsCompleted: 2, job: 'Catering Project', location: 'Chennai' },
-  { id: '2', name: 'Kavita Devi', skills: ['Farming'], rating: 4.2, jobsCompleted: 2, job: 'Harvesting', location: 'Coimbatore' },
-  { id: '3', name: 'Meena Kumari', skills: ['Herding', 'Farming'], rating: 4.8, jobsCompleted: 3, job: 'Livestock Management', location: 'Madurai' },
-  { id: '4', name: 'Anjali Sharma', skills: ['Cleaning'], rating: 3.9, jobsCompleted: 1, job: 'Office Cleaning', location: 'Tiruchirappalli' },
-  { id: '5', name: 'Sita Rai', skills: ['Child Care', 'Cooking'], rating: 4.0, jobsCompleted: 0, job: 'Nanny Position', location: 'Salem' },
-  { id: '6', name: 'Rina Das', skills: ['Handicrafts', 'Painting'], rating: 4.9, jobsCompleted: 5, job: 'Artisan Fair', location: 'Erode' },
-  { id: '7', name: 'Sunita Devi', skills: ['Tailoring', 'Embroidery'], rating: 4.1, jobsCompleted: 0, job: 'Boutique Assistant', location: 'Tirunelveli' },
-  { id: '8', name: 'Pooja Singh', skills: ['Driving'], rating: 4.3, jobsCompleted: 0, job: 'Delivery Driver', location: 'Vellore' },
-  { id: '9', name: 'Asha Patil', skills: ['Data Entry', 'MS Office'], rating: 4.6, jobsCompleted: 4, job: 'Office Assistant', location: 'Bangalore' },
-  { id: '10', name: 'Divya Gowda', skills: ['Farming', 'Gardening'], rating: 4.4, jobsCompleted: 3, job: 'Urban Gardener', location: 'Mysuru' },
-  { id: '11', name: 'Priya Chavan', skills: ['Cooking', 'Baking'], rating: 4.7, jobsCompleted: 6, job: 'Home Baker', location: 'Mumbai' },
-  { id: '12', name: 'Neha Reddy', skills: ['Graphic Design'], rating: 4.5, jobsCompleted: 2, job: 'Freelance Designer', location: 'Bangalore' },
-];
+export type WorkerProfile = {
+  id: string;
+  name: string;
+  skills: string[];
+  rating: number;
+  jobsCompleted: number;
+  job: string;
+  location: string;
+};
 
-type WorkerProfile = typeof allProfiles[0];
+const allProfiles: WorkerProfile[] = [];
 
 const initialNewJobState = {
   title: '',

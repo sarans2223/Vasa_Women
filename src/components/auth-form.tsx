@@ -30,7 +30,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "@/firebase/provider";
+import { useAuth } from "@/lib/auth-provider";
 
 type AuthFormProps = {
   type: "login" | "signup";

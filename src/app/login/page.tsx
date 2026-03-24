@@ -3,7 +3,7 @@
 // src/app/login/page.tsx
 import React from "react";
 import { AuthForm } from "@/components/auth-form";
-import { useUser } from "@/firebase/auth/use-user";
+import { useUser } from "@/lib/auth-provider";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {

@@ -25,18 +25,14 @@ import { useToast } from '@/hooks/use-toast';
 import type { Job } from '@/lib/types';
 import { mockJobs } from '@/lib/data'; // Keep for fallback if needed
 
-const allProfiles = [
-  { id: '1', name: 'Lakshmi Priya', skills: ['Cooking', 'Tailoring'], rating: 4.5 },
-  { id: '2', name: 'Kavita Devi', skills: ['Farming'], rating: 4.2 },
-  { id: '3', name: 'Meena Kumari', skills: ['Herding', 'Farming'], rating: 4.8 },
-  { id: '4', name: 'Anjali Sharma', skills: ['Cleaning'], rating: 3.9 },
-  { id: '5', name: 'Sita Rai', skills: ['Child Care', 'Cooking'], rating: 4.0 },
-  { id: '6', name: 'Rina Das', skills: ['Handicrafts', 'Painting'], rating: 4.9 },
-  { id: '7', name: 'Sunita Devi', skills: ['Tailoring', 'Embroidery'], rating: 4.1 },
-  { id: '8', name: 'Pooja Singh', skills: ['Driving'], rating: 4.3 },
-];
+export type WorkerProfile = {
+  id: string;
+  name: string;
+  skills: string[];
+  rating: number;
+};
 
-type WorkerProfile = typeof allProfiles[0];
+const allProfiles: WorkerProfile[] = [];
 
 export default function AssignWorkerPanchayatPage() {
   const [allWorkers] = useState<WorkerProfile[]>(allProfiles);

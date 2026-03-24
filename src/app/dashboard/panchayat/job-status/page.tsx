@@ -23,27 +23,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 
-const initialJobs = [
-    { id: '1', name: 'Farm Harvesting', workerNames: ['Gita Devi', 'Priya'], status: 'Worker Assigned' as const, location: 'Village Fields', date: '2024-07-25', time: '9:00 AM - 5:00 PM', pay: '₹450 per day' },
-    { id: '2', name: 'Washing', workerNames: [], status: 'Yet To Assign' as const, location: 'Community Center', date: '2024-07-26', time: '10:00 AM - 1:00 PM', pay: '₹300 per session' },
-    { id: '3', name: 'Herder', workerNames: ['Meena Kumari'], status: 'Completed' as const, location: 'Pasture Lands', date: '2024-07-22', time: '6:00 AM - 6:00 PM', pay: '₹500 per day' },
-    { id: '4', name: 'Community Hall Painting', workerNames: [], status: 'Yet To Assign' as const, location: 'Community Hall', date: '2024-08-01', time: 'Full Day', pay: '₹600 per day' },
-    { id: '5', name: 'School Lunch Preparation', workerNames: ['Sunita', 'Anjali'], status: 'Worker Assigned' as const, location: 'Village School', date: 'Daily', time: '8:00 AM - 12:00 PM', pay: '₹350 per day' },
-    { id: '6', name: 'Roadside Cleanup', workerNames: ['Ramesh', 'Suresh'], status: 'Completed' as const, location: 'Main Village Road', date: '2024-07-20', time: 'Morning', pay: '₹200 per person' },
-    { id: '7', name: 'Village Fair Setup', workerNames: [], status: 'Yet To Assign' as const, location: 'Market Ground', date: '2024-08-10', time: '9:00 AM onwards', pay: '₹400 per day' },
-    { id: '8', name: 'Handicraft Stall Management', workerNames: ['Rina Das'], status: 'Worker Assigned' as const, location: 'Village Fair', date: '2024-08-12', time: '10:00 AM - 8:00 PM', pay: '₹550 per day' },
-    { id: '9', name: 'Temple Cleaning', workerNames: ['Lalita', 'Sarita', 'Anita'], status: 'Completed' as const, location: 'Village Temple', date: '2024-07-18', time: '7:00 AM - 9:00 AM', pay: '₹150 per person' },
-    { id: '10', name: 'Water Tank Maintenance', workerNames: [], status: 'Yet To Assign' as const, location: 'Overhead Water Tank', date: '2024-07-30', time: '2:00 PM - 5:00 PM', pay: '₹300 flat' },
-    { id: '11', name: 'Local Market Stall Setup', workerNames: ['Kavita Devi'], status: 'Worker Assigned' as const, location: 'Weekly Market', date: '2024-07-28', time: '8:00 AM - 10:00 AM', pay: '₹250' },
-    { id: '12', name: 'Papad Making', workerNames: ['Shanti', 'Kamla'], status: 'Completed' as const, location: 'Women\'s SHG Center', date: '2024-07-15', time: 'Flexible', pay: 'Piece-rate' },
-    { id: '13', name: 'Spice Grinding', workerNames: [], status: 'Yet To Assign' as const, location: 'Women\'s SHG Center', date: 'As per order', time: 'Flexible', pay: 'Per Kg' },
-    { id: '14', name: 'Cattle Rearing', workerNames: ['Laxmi'], status: 'Worker Assigned' as const, location: 'Individual Farm', date: 'Ongoing', time: 'Daily', pay: 'Monthly stipend' },
-    { id: '15', name: 'Embroidery Work', workerNames: ['Sunita Devi'], status: 'Completed' as const, location: 'Home-based', date: '2024-07-10', time: 'Flexible', pay: 'Per piece' },
-    { id: '16', name: 'Driving for local transport', workerNames: ['Pooja Singh'], status: 'Worker Assigned' as const, location: 'Village Routes', date: 'Daily', time: '6:00 AM - 8:00 PM', pay: '₹700 per day' },
-    { id: '17', name: 'Retail Store Assistant', workerNames: ['Aarti', 'Bharti'], status: 'Worker Assigned' as const, location: 'Local Kirana Store', date: 'Mon-Sat', time: '10:00 AM - 6:00 PM', pay: '₹8000 per month' },
-    { id: '18', name: 'Pottery Decoration', workerNames: [], status: 'Yet To Assign' as const, location: 'Artisan Village', date: 'Ongoing', time: 'Flexible', pay: 'Per piece' },
-    { id: '19', name: 'Event Catering Support', workerNames: ['Suman', 'Rita'], status: 'Completed' as const, location: 'Various', date: '2024-07-12', time: 'Event-based', pay: '₹600 per event' },
-];
+const initialJobs: Job[] = [];
 
 type JobStatus = 'Completed' | 'Worker Assigned' | 'Yet To Assign';
 
@@ -56,7 +36,7 @@ type Job = {
     date: string;
     time: string;
     pay: string;
-}
+};
 
 const statusColors: { [key in JobStatus]: string } = {
     'Completed': 'bg-green-100 text-green-800 border-green-200',
@@ -145,7 +125,8 @@ export default function JobStatusPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {sortedJobs.map((job) => (
+        {sortedJobs.length > 0 ? (
+          sortedJobs.map((job) => (
           <Card key={job.id} className="flex flex-col">
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -190,7 +171,13 @@ export default function JobStatusPage() {
                 )}
             </CardFooter>
           </Card>
-        ))}
+        ))
+        ) : (
+           <div className="text-center py-16 text-muted-foreground bg-muted/50 rounded-lg col-span-full">
+               <h3 className="text-xl font-semibold">No Jobs Available</h3>
+               <p className="mt-2">There are currently no job statuses to display.</p>
+           </div>
+        )}
       </div>
 
        {selectedJob && (

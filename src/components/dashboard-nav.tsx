@@ -31,10 +31,8 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { signOut as firebaseSignOut } from "firebase/auth";
+import { useUser, useAuth } from "@/lib/auth-provider";
 import { useToast } from "@/hooks/use-toast";
-import { useUser } from "@/firebase/auth/use-user";
-import { useAuth } from "@/firebase/provider";
 
 
 const panchayatMenuItems = [
@@ -90,7 +88,6 @@ export function DashboardNav() {
 
   const handleSignOut = async () => {
     try {
-      await firebaseSignOut(auth);
       if (typeof window !== 'undefined') {
         localStorage.clear();
       }

@@ -41,10 +41,7 @@ type Contact = {
   phone: string;
 };
 
-const mockContacts: Contact[] = [
-  { id: 1, name: 'Asha Sharma', phone: '9876543210' },
-  { id: 2, name: 'Police', phone: '100' },
-];
+const mockContacts: Contact[] = [];
 
 export default function SafetyPage() {
   const [contacts, setContacts] = useState<Contact[]>(mockContacts);

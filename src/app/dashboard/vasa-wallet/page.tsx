@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/firebase/provider";
+import { useAuth } from "@/lib/auth-provider";
 
 
 type User = {
@@ -43,7 +43,7 @@ const timeOptions = [
     "09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"
 ];
 
-export default function VasaWalletPage() {
+function VasaWalletContent() {
     const router = useRouter();
     const { toast } = useToast();
     const searchParams = useSearchParams();
@@ -502,5 +502,13 @@ export default function VasaWalletPage() {
                 </CardContent>
             </Card>
         </div>
+    );
+}
+
+export default function VasaWalletPage() {
+    return (
+        <Suspense fallback={<div className="p-8">Loading wallet...</div>}>
+            <VasaWalletContent />
+        </Suspense>
     );
 }
